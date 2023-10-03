@@ -15,6 +15,7 @@ export class UsersApiStack extends cdk.Stack {
     const logGroup = new cwLogs.LogGroup(this, 'UsersApiLogs');
     const api = new apiGateway.RestApi(this, 'UsersApi', {
       restApiName: 'UsersApi',
+      cloudWatchRole: true,
       deployOptions: {
         accessLogDestination: new apiGateway.LogGroupLogDestination(logGroup),
         accessLogFormat: apiGateway.AccessLogFormat.jsonWithStandardFields({
