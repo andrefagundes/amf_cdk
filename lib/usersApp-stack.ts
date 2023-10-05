@@ -2,12 +2,23 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNodeJS from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import * as dynamoDb from 'aws-cdk-lib/aws-dynamodb';
 
 export class UsersAppStack extends cdk.Stack {
   readonly usersFetchHandler: lambdaNodeJS.NodejsFunction;
+  readonly usersDdb: dynamoDb.Table;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    this.usersDdb = new dynamoDb.Table(this, 'usersDdb', {
+      tableName: 'users',
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      partitionKey: {
+        name: 'id',
+        type: dynamoDb.AttributeType.STRING,
+      },
+    });
 
     this.usersFetchHandler = new lambdaNodeJS.NodejsFunction(
       this,
@@ -23,7 +34,11 @@ export class UsersAppStack extends cdk.Stack {
           minify: true,
           sourceMap: false,
         },
+        environment: {
+          USERS_DDB: this.usersDdb.tableName,
+        },
       },
     );
+    this.usersDdb.grantReadData(this.usersFetchHandler);
   }
 }
